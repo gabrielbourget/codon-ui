@@ -83,6 +83,15 @@ it("uses content-sized toast ribbons and retains assigned padding", async () => 
   )
   expect(row("toast-ribbon")).toHaveStyle({ padding: 0, paddingHorizontal: 3, paddingLeft: 7, minHeight: 0 })
 })
+it("raises the unclipped outer toast and applies five-point padding with caller overrides", async () => {
+  const { rerender } = await render(node(base()))
+  expect(row()).toHaveStyle({ elevation: 4, shadowOpacity: 0.26, overflow: undefined })
+  expect(row("toast-natural-content").parent).toHaveStyle({ overflow: "hidden" })
+  expect(row("toast-content")).toHaveStyle({ padding: 5 })
+  await rerender(node(base({ raised: false, customContentStyles: { padding: 0 } })))
+  expect(row()).toHaveStyle({ elevation: 0, shadowOpacity: 0 })
+  expect(row("toast-content")).toHaveStyle({ padding: 0 })
+})
 it("preserves caller close-button transparency and final style overrides", async () => {
   const { rerender } = await render(node(base({ customCloseButtonProps: { transparent: false } })))
   expect(screen.getByRole("button", { name: "Close Toast" })).toHaveStyle({ backgroundColor: "#ffffff" })

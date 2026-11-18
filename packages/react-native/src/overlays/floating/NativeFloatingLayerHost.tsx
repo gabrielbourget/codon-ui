@@ -48,6 +48,7 @@ export type TNativeFloatingLayerHostRef = View
 // Both pinned native base configs register these phases; RN0.86 ViewProps omits their capture spellings.
 type TNativeTouchCaptureProps = {
   onTouchStartCapture?: NonNullable<ViewProps["onTouchStart"]>
+  onTouchMoveCapture?: NonNullable<ViewProps["onTouchMove"]>
   onTouchEndCapture?: NonNullable<ViewProps["onTouchEnd"]>
   onTouchCancelCapture?: NonNullable<ViewProps["onTouchCancel"]>
   onFocusCapture?: NonNullable<ViewProps["onFocus"]>
@@ -135,6 +136,7 @@ const NativeFloatingLayerHostReceiver = forwardRef<
       onLayout,
       onAccessibilityEscape,
       onTouchStartCapture,
+      onTouchMoveCapture,
       onTouchEndCapture,
       onTouchCancelCapture,
       onFocusCapture,
@@ -168,6 +170,7 @@ const NativeFloatingLayerHostReceiver = forwardRef<
       onLayout,
       onAccessibilityEscape,
       onTouchStartCapture,
+      onTouchMoveCapture,
       onTouchEndCapture,
       onTouchCancelCapture,
       onFocusCapture,
@@ -177,6 +180,7 @@ const NativeFloatingLayerHostReceiver = forwardRef<
       onLayout,
       onAccessibilityEscape,
       onTouchStartCapture,
+      onTouchMoveCapture,
       onTouchEndCapture,
       onTouchCancelCapture,
       onFocusCapture,
@@ -229,6 +233,11 @@ const NativeFloatingLayerHostReceiver = forwardRef<
       [layers],
     )
     const modal = layers.hasModal()
+    const needsTapTarget = useSyncExternalStore(
+      interactions.subscribeTapTarget,
+      interactions.needsTapTarget,
+      interactions.needsTapTarget,
+    )
     const handleLayout = (event: LayoutChangeEvent) => {
       if (!live.current) return
       generation.current++
@@ -246,6 +255,11 @@ const NativeFloatingLayerHostReceiver = forwardRef<
         if (!live.current || current.current.windowActive?.() === false) return
         interactions.start(event)
         current.current.onTouchStartCapture?.(event)
+      },
+      onTouchMoveCapture: (event: GestureResponderEvent) => {
+        if (!live.current || current.current.windowActive?.() === false) return
+        interactions.move(event)
+        current.current.onTouchMoveCapture?.(event)
       },
       onTouchEndCapture: (event: GestureResponderEvent) => {
         if (!live.current) return
@@ -266,7 +280,8 @@ const NativeFloatingLayerHostReceiver = forwardRef<
       ref: background,
       testID: `${testID}-background`,
       style: { flex: 1 },
-      pointerEvents: modal ? "none" : "box-none",
+      // Children still win hit testing. The background is a target only for otherwise empty space.
+      pointerEvents: modal ? "none" : needsTapTarget ? "auto" : "box-none",
       accessibilityElementsHidden: modal,
       importantForAccessibility: modal ? "no-hide-descendants" : "auto",
       children: <NativeFloatingScopeContext.Provider value={scope}>{children}</NativeFloatingScopeContext.Provider>,

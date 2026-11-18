@@ -149,103 +149,109 @@ export const Toast = (props: TNativeToastProps) => {
         onPointerCancel={gesture.pointerCancel}
         style={motionStyle}
       >
-        <View
-          testID="toast-natural-content"
-          style={{ gap: theme.spacing.unit }}
-          onLayout={(event) => {
-            if (!lifecycle.live.current) return
-            const height = event.nativeEvent.layout.height
-            if (!Number.isFinite(height) || height < 0) return
-            setNaturalHeight(height)
-            onHeight(toast.id, height)
-          }}
-        >
-          <View testID="toast-ribbon" style={styles.ribbon}>
-            <View testID="toast-ribbon-left" style={styles.left}>
-              {toast.ToastIcon ?? <NativeToastIcon type={type} color={theme.colors.controlSelectedForeground} />}
-              <Text
-                elementType="h3"
-                variant="b10"
-                fontWeight="bold"
-                color={theme.colors.controlSelectedForeground}
-                customStyles={toast.customTitleStyles}
-              >
-                {titleText}
-              </Text>
+        <View style={{ flexShrink: 1, borderRadius: styles.root.borderRadius, overflow: "hidden" }}>
+          <View
+            testID="toast-natural-content"
+            style={{ gap: theme.spacing.unit }}
+            onLayout={(event) => {
+              if (!lifecycle.live.current) return
+              const height = event.nativeEvent.layout.height
+              if (!Number.isFinite(height) || height < 0) return
+              setNaturalHeight(height)
+              onHeight(toast.id, height)
+            }}
+          >
+            <View testID="toast-ribbon" style={styles.ribbon}>
+              <View testID="toast-ribbon-left" style={styles.left}>
+                {toast.ToastIcon ?? <NativeToastIcon type={type} color={theme.colors.controlSelectedForeground} />}
+                <Text
+                  elementType="h3"
+                  variant="b10"
+                  fontWeight="bold"
+                  color={theme.colors.controlSelectedForeground}
+                  customStyles={toast.customTitleStyles}
+                >
+                  {titleText}
+                </Text>
+              </View>
+              {dismissable ? (
+                <Button
+                  transparent
+                  {...buttonSlot(toast.customCloseButtonProps, toast.customCloseButtonStyles)}
+                  onPointerDown={(event) => excludeGesture("close", event)}
+                  accessibilityLabel={labels.closeButtonAriaLabel}
+                  raised={false}
+                  onPress={() => {
+                    if (canAct()) lifecycle.act("close")
+                  }}
+                  customStyles={[
+                    { padding: 0 },
+                    toast.customCloseButtonProps?.customStyles,
+                    toast.customCloseButtonStyles,
+                  ]}
+                >
+                  {toast.CloseIcon ?? <NativeToastIcon type="close" color={theme.colors.controlSelectedForeground} />}
+                </Button>
+              ) : null}
             </View>
-            {dismissable ? (
-              <Button
-                transparent
-                {...buttonSlot(toast.customCloseButtonProps, toast.customCloseButtonStyles)}
-                onPointerDown={(event) => excludeGesture("close", event)}
-                accessibilityLabel={labels.closeButtonAriaLabel}
-                raised={false}
-                onPress={() => {
-                  if (canAct()) lifecycle.act("close")
-                }}
-                customStyles={[
-                  { padding: 0 },
-                  toast.customCloseButtonProps?.customStyles,
-                  toast.customCloseButtonStyles,
-                ]}
-              >
-                {toast.CloseIcon ?? <NativeToastIcon type="close" color={theme.colors.controlSelectedForeground} />}
-              </Button>
-            ) : null}
-          </View>
-          <View testID="toast-content" style={styles.content}>
-            <Text
-              variant="b11"
-              {...toast.customBodyTextProps}
-              customStyles={[toast.customBodyTextProps?.customStyles, toast.customBodyTextStyles]}
-            >
-              {bodyText}
-            </Text>
-            <View testID="toast-bottom" style={styles.bottom}>
+            <View testID="toast-content" style={styles.content}>
               <Text
-                variant="b13"
-                color={theme.colors.controlPlaceholder}
-                {...toast.customTimestampTextProps}
-                customStyles={[toast.customTimestampTextProps?.customStyles, toast.customTimestampStyles]}
+                variant="b11"
+                {...toast.customBodyTextProps}
+                customStyles={[toast.customBodyTextProps?.customStyles, toast.customBodyTextStyles]}
               >
-                {computeToastDateTimeString()}
+                {bodyText}
               </Text>
-              <View testID="toast-buttons" style={styles.buttons}>
-                {showButtons ? (
-                  <>
-                    {showCancelAction ? (
+              <View testID="toast-bottom" style={styles.bottom}>
+                <Text
+                  variant="b13"
+                  color={theme.colors.controlPlaceholder}
+                  {...toast.customTimestampTextProps}
+                  customStyles={[toast.customTimestampTextProps?.customStyles, toast.customTimestampStyles]}
+                >
+                  {computeToastDateTimeString()}
+                </Text>
+                <View testID="toast-buttons" style={styles.buttons}>
+                  {showButtons ? (
+                    <>
+                      {showCancelAction ? (
+                        <Button
+                          {...buttonSlot(toast.customCancelButtonProps, toast.customCancelButtonStyles)}
+                          onPointerDown={(event) => excludeGesture("cancel", event)}
+                          order="primary"
+                          accessibilityLabel={labels.cancelActionButtonAriaLabel}
+                          transparent
+                          raised={false}
+                          onPress={() => {
+                            if (canAct()) lifecycle.act("cancel")
+                          }}
+                        >
+                          <Text
+                            fontWeight="bold"
+                            color={styles.color}
+                            customStyles={{ textDecorationLine: "underline" }}
+                          >
+                            {labels.cancelActionButton}
+                          </Text>
+                        </Button>
+                      ) : null}
                       <Button
-                        {...buttonSlot(toast.customCancelButtonProps, toast.customCancelButtonStyles)}
-                        onPointerDown={(event) => excludeGesture("cancel", event)}
-                        order="primary"
-                        accessibilityLabel={labels.cancelActionButtonAriaLabel}
-                        transparent
+                        {...buttonSlot(toast.customConfirmButtonProps, toast.customConfirmButtonStyles)}
+                        onPointerDown={(event) => excludeGesture("confirm", event)}
+                        accessibilityLabel={labels.confirmActionButtonAriaLabel}
                         raised={false}
+                        color={styles.color}
                         onPress={() => {
-                          if (canAct()) lifecycle.act("cancel")
+                          if (canAct()) lifecycle.act("confirm")
                         }}
                       >
-                        <Text fontWeight="bold" color={styles.color} customStyles={{ textDecorationLine: "underline" }}>
-                          {labels.cancelActionButton}
+                        <Text fontWeight="bold" color={theme.colors.controlSelectedForeground}>
+                          {labels.confirmActionButton}
                         </Text>
                       </Button>
-                    ) : null}
-                    <Button
-                      {...buttonSlot(toast.customConfirmButtonProps, toast.customConfirmButtonStyles)}
-                      onPointerDown={(event) => excludeGesture("confirm", event)}
-                      accessibilityLabel={labels.confirmActionButtonAriaLabel}
-                      raised={false}
-                      color={styles.color}
-                      onPress={() => {
-                        if (canAct()) lifecycle.act("confirm")
-                      }}
-                    >
-                      <Text fontWeight="bold" color={theme.colors.controlSelectedForeground}>
-                        {labels.confirmActionButton}
-                      </Text>
-                    </Button>
-                  </>
-                ) : null}
+                    </>
+                  ) : null}
+                </View>
               </View>
             </View>
           </View>
