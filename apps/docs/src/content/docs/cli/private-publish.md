@@ -34,10 +34,10 @@ disallow traditional publishing tokens and revoke obsolete write credentials.
 
 ## Version And Release Notes
 
-Bump the CLI version before publishing. Use a patch version for private CLI behavior fixes and a minor version for registry payload or theme contract releases that consumers need to absorb intentionally. The native-target candidate is `0.3.0`, marked unreleased in `packages/CLI/CHANGELOG.md`; preparing or merging it does not authorize publication.
+Bump the CLI version before publishing. `0.3.0` introduced the published React Native target. `0.3.1` is the next patch for the corrected native source payload. Preparing or merging the patch leaves the publication approval in the dedicated workflow.
 
 ```sh
-pnpm -F @codon-ui/cli version 0.3.0 --no-git-tag-version
+pnpm -F @codon-ui/cli version 0.3.1 --no-git-tag-version
 ```
 
 The release guard intentionally pins the intended package version. Update these
@@ -58,11 +58,9 @@ changes, consumer migration notes, and the verification commands used.
 
 The editable native target was merged through PRs #262–#268, ending at `d3ea0e91`. The existing CLI now selects React or React Native and preserves consumer-owned edits. The [native consumer guide](../../packages/react-native-consumer/) covers the supported Expo SDK 57 tuple, first-entry Intl setup, providers, copied-source imports, selected Table backend and native rebuild requirements. Native helper dependency-set changes deliberately block before writes; automatic ownership migration is not included.
 
-The actual locally packed bridge passed external Expo source installation, types, both Metro exports, standard autolinking and core-only/full-Table compile/link on Android and iOS at their recorded producer/product identities. The current local release refresh combines `cb56b130` release metadata with reviewed producer `3506b2dd` (draft #274), including the source-tested calendar correction; neither PR is inferred merged. Reuse older native build evidence only where its complete native/dependency/configuration inputs match, and retain its original identity. Broader provider discovery, arbitrary existing-project migration, durable filesystem transactions and bare-RN qualification remain outside this proof.
+Published `0.3.0` was installed and exercised from the private npm registry in an isolated Expo consumer. The [consumer fixtures ledger](https://github.com/gabrielbourget/codon-ui-consumer-fixtures/pull/35) distinguishes package, build and installed evidence. The latest local native rebuild proof and targeted current-source retests retain their own artifact identities.
 
-Gabriel explicitly deferred the remaining calendar tap investigation on 2026-11-16. Calendar selection and final iOS overflow/scroll observations stay deferred/unverified rather than blocking the other authorized preparation; this acceptance does not turn a failed or unexecuted check into a pass. The separate installed-fixtures surface has 52 component records and seven shared-native scenarios with 554 pending gate/outcome statuses. Those require actual scoped evidence independently of source builds or preparation coverage. Actual published-package consumer validation requires the real approved registry artifact; a local archive cannot supply that result.
-
-Before requesting publication, resolve or explicitly accept those runtime proof limits, confirm private npm visibility and that the candidate version is available through an authorized registry read, then run the candidate preflight below. The 2026-11-16 preparation lookup returned 404, which does not establish whether this restricted package or version exists. Do not change credentials or dispatch publication to diagnose that lookup.
+Before requesting publication, confirm private npm visibility and candidate version availability through an authorized read, then run the candidate preflight. After the patch is published, bind the new consumer to its registry archive and prove the corrected component paths on their affected platforms. Calendar selection and viewport, general external provider discovery, and bare React Native qualification have separate scopes.
 
 ## Local Preflight
 
@@ -78,7 +76,7 @@ pnpm -F @codon-ui/cli lint
 pnpm -F @codon-ui/cli build
 pnpm -F @codon-ui/cli pack:check
 pnpm -F @codon-ui/cli release:check
-NPM_RELEASE_EXPECTED_VERSION=0.3.0 pnpm -F @codon-ui/cli release:request
+NPM_RELEASE_EXPECTED_VERSION=0.3.1 pnpm -F @codon-ui/cli release:request
 pnpm verify:github-actions
 git diff --check
 ```
@@ -121,18 +119,18 @@ pnpm view @codon-ui/cli versions --json
 ```
 
 Then run the private-package smoke proof from the sibling fixture repository,
-replacing `0.3.0` if a different version was approved and published:
+replacing `0.3.1` if a different version was approved and published:
 
 ```sh
 cd ../codon-ui-consumer-fixtures
-CODON_UI_PUBLISHED_CLI_VERSION=0.3.0 pnpm verify:published-package-smoke
+CODON_UI_PUBLISHED_CLI_VERSION=0.3.1 pnpm verify:published-package-smoke
 ```
 
 For a release that changes `init --setup-cli`, also verify the published
 bootstrap path:
 
 ```sh
-pnpm --package=@codon-ui/cli@0.3.0 dlx codon-ui init --setup-cli --json
+pnpm --package=@codon-ui/cli@0.3.1 dlx codon-ui init --setup-cli --json
 pnpm install
 pnpm cui status
 ```
