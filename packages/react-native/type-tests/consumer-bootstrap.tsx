@@ -17,7 +17,7 @@ export const ConsumerRoot = ({
   children,
   mode = "light",
   overrides,
-  enableBackdropBlur = false,
+  enableBackdropBlur = true,
 }: PropsWithChildren<{
   mode?: NativeThemeMode
   overrides?: NativeThemeOverrides

@@ -4,9 +4,11 @@ import { act as rawAct, cleanup, within } from "@testing-library/react-native"
 import { useEffect, useState, type ComponentProps } from "react"
 import { AccessibilityInfo, AppState, StyleSheet, View } from "react-native"
 
+import { ConsumerRoot } from "../../../../type-tests/consumer-bootstrap"
 import { nativeVirtualDrag } from "../../../collection/dragAndDrop/virtualDrag"
 import { Commands } from "../../../input/specs/CUIFocusViewNativeComponent"
 import NativeDragModule from "../../../input/specs/NativeCUIDragAndDrop"
+import NativeCUIMotionSnapshot from "../../../input/specs/NativeCUIMotionSnapshot"
 import { NativeBackdropHost } from "../../../overlays/backdrop/NativeBackdropHost"
 import { prepareSelectPopover, pressSelectOption } from "../../../overlays/floating/__tests__/selectPopoverFixture"
 import { NativeOverlayProvider } from "../../../overlays/NativeOverlayProvider"
@@ -39,6 +41,10 @@ jest.mock("../../../input/specs/NativeCUIDragAndDrop", () => ({
     getLease: jest.fn(() => "sort-panel-module"),
     readGeometry: jest.fn(),
   },
+}))
+jest.mock("../../../input/specs/NativeCUIMotionSnapshot", () => ({
+  __esModule: true,
+  default: { backdropFrame: jest.fn((encoded: string) => Promise.resolve(encoded)) },
 }))
 const sorts = [
   { id: "city", name: "City", queryKey: "event.city" },
@@ -78,6 +84,24 @@ const tree = (
   </NativeThemeProvider>
 )
 const host = (id: string) => screen.getByTestId(id, { includeHiddenElements: true })
+
+it("opens the default blurred panel in the standard consumer window", async () => {
+  await render(
+    <ConsumerRoot>
+      <SortAndFilterPanel
+        isOpen
+        onOpenChange={jest.fn()}
+        possibleSortCriteria={sorts}
+        possibleFilterCriteria={criteria}
+        applyPendingSortAndFilterChanges={jest.fn()}
+      />
+    </ConsumerRoot>,
+  )
+  expect(host("sort-filter-panel")).toBeOnTheScreen()
+  expect(host("sort-filter-panel-backdrop-target")).toBeOnTheScreen()
+  expect(NativeCUIMotionSnapshot!.backdropFrame).toHaveBeenCalled()
+})
+
 const acknowledge = async (identity = "sort-filter-panel-floating-host") => {
   for (const ready of host(identity).props.acceptedWindowId ? [true] : [false, true]) {
     const props = host(identity).props
